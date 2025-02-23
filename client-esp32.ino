@@ -2,35 +2,45 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+#include <AESLib.h>
 
 // OLED display parameters
-#define SCREEN_WIDTH 128 // OLED display width, in pixels
-#define SCREEN_HEIGHT 32 // OLED display height, in pixels
-#define OLED_RESET     -1 // Reset pin # (or -1 if sharing Arduino reset pin)
-#define SCREEN_ADDRESS 0x3C ///< See datasheet for Address; 0x3D for 128x64, 0x3C for 128x32
+#define SCREEN_WIDTH 128     // OLED display width, in pixels
+#define SCREEN_HEIGHT 32     // OLED display height, in pixels
+#define OLED_RESET -1        // Reset pin # (or -1 if sharing Arduino reset pin)
+#define SCREEN_ADDRESS 0x3C  ///< See datasheet for Address; 0x3D for 128x64, 0x3C for 128x32
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
+AESLib aesLib;
+uint8_t key[] = { 'g', 'm', 't', 'Z', 'A', 'w', 's', 'j', 'i', 'k', 'P', 'V', '4', 'y', 'g', '9'};
+uint8_t encrypted[] = { 0xb9, 0xcd, 0x01, 0xa1, 0x18, 0x94, 0x02, 0x69, 0xe0, 0xa1, 0x27, 0x91, 0x84, 0x76, 0x18, 0xd4 };
+char decrypted[17]; // 16 bytes + null terminator for string
+uint8_t iv[] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+
 unsigned long lastBeaconTime = 0;
-const unsigned long beaconInterval = 20000; // 30 seconds in milliseconds
+const unsigned long beaconInterval = 20000;  // 30 seconds in milliseconds
 #define MAX_FLAGS 3
 String flagArray[MAX_FLAGS];
 int flagCount = 0;
 
-#define BUTTON_PIN 5 //GPIO5 (D5)
+#define BUTTON_PIN 5  //GPIO5 (D5)
 // LoRa module serial communication
 HardwareSerial loraSerial(1);
 
 // LoRa variables
-#define LORA_NETWORKID 73  //needs to be 73
-#define LORA_ADDRESS_SRC 101 //this radio's address 0~65535
-#define LORA_ADDRESS_DEST 4 // 0=broadcast, 4=server
+#define LORA_NETWORKID 37     //needs to be 73
+#define LORA_ADDRESS_SRC 101  //this radio's address 0~65535
+#define LORA_ADDRESS_DEST 44   // 0=broadcast, 4=server
 #define LORA_BAND 915000000
 
 
 void setup() {
   // Initialize serial communication with the PC
   Serial.begin(9600);
-  while (!Serial); // Wait for Serial Monitor to open
+  unsigned int to = 60;
+  while (!Serial && --to) { // Wait briefly for Serial Monitor to open, then continue.
+    delay(1);
+  }  //continue whether we have serial connection or not. 
   Serial.println("Serial communication initialized.");
 
 
@@ -39,9 +49,10 @@ void setup() {
   Serial.println("SoftwareSerial initialized at 115200 baud.");
 
   // Initialize the OLED display
-  if (!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) { // 0x3C is the I2C address
+  if (!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {  // 0x3C is the I2C address
     Serial.println(F("SSD1306 allocation failed"));
-    for (;;); // Don't proceed, loop forever
+    for (;;)
+      ;  // Don't proceed, loop forever
   }
   Serial.println("OLED display initialized.");
   delay(1000);
@@ -80,12 +91,14 @@ void setup() {
   configureLoRaModule();
 
   Serial.println("RYLR998 configuration complete.");
-  delay(500);
-  displayMessage("FLAG1: SKY-HDWR-1111");  //Display flag 1 for correct wiring and setup. 
-  delay(20000);
+  delay(5000);
 
-  // Initialize the flag array with "SKY_HDWR_1111"
-  flagArray[0] = "SKY_HDWR_1111";
+  // Initialize display with FLAG1
+  uint16_t encrypted_len = 16; // Length of encrypted data
+  aesLib.decrypt(encrypted, encrypted_len, (uint8_t*)decrypted, key, 16, iv);  
+  decrypted[13] = '\0'; // Null-terminate after 13 characters to skip padding
+
+  flagArray[0] = decrypted;
   flagCount = 1;
 
   // Display the initial flag on the OLED
@@ -93,19 +106,10 @@ void setup() {
 
   // Configure the button pin as input with internal pull-up resistor
   pinMode(BUTTON_PIN, INPUT_PULLUP);
-
 }
 
 void loop() {
   unsigned long currentTime = millis();
-
-  // // Check if it's time to send the beacon message
-  // if (currentTime - lastBeaconTime >= beaconInterval) {
-  //   // Send beacon message
-  //   sendFlagRequest();
-  //   readLoRaResponse();
-  //   lastBeaconTime = currentTime;
-  // }
 
   // Read the button state
   int buttonState = digitalRead(BUTTON_PIN);
@@ -113,7 +117,7 @@ void loop() {
   // Check if the button is pressed (LOW because of pull-up resistor)
   if (buttonState == LOW) {
     // Debounce the button
-    delay(50); // Wait for 50ms to avoid bouncing
+    delay(50);  // Wait for 50ms to avoid bouncing
     // Confirm the button is still pressed
     if (digitalRead(BUTTON_PIN) == LOW) {
       sendFlagRequest();
@@ -129,11 +133,10 @@ void loop() {
 
   // Handle incoming data
   readLoRaResponse();
-
 }
 
 void sendFlagRequest() {
-  String message = "GIVEMEFLAG";
+  String message = "HELLOTHERE"; // Or maybe you could GIVEMEFLAG
   int messageLength = message.length();
   String atCommand = "AT+SEND=" + String(LORA_ADDRESS_DEST) + "," + String(messageLength) + "," + message;
   sendCommand(atCommand);
@@ -243,7 +246,7 @@ void updateDisplay() {
 // Function to configure the LoRa module
 void configureLoRaModule() {
   // Set module address (e.g., 1)
-  sendCommand("AT+ADDRESS=" + String(LORA_ADDRESS_SRC) +"");
+  sendCommand("AT+ADDRESS=" + String(LORA_ADDRESS_SRC) + "");
   delay(500);
   readLoRaResponse();
 
@@ -261,5 +264,4 @@ void configureLoRaModule() {
   sendCommand("AT+CRFOP=15");
   delay(500);
   readLoRaResponse();
-
 }

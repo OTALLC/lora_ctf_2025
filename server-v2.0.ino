@@ -9,6 +9,8 @@
 int addressQueue[MAX_ADDRESSES];
 int queueStart = 0;
 int queueEnd = 0;
+int clientList[MAX_ADDRESSES];
+int clientCount = 0;
 
 unsigned long lastBeaconTime = 0;
 const unsigned long beaconInterval = 30000; // 30 seconds in milliseconds
@@ -33,7 +35,10 @@ HardwareSerial loraSerial(1);
 void setup() {
   // Initialize serial communication with the PC
   Serial.begin(9600);
-  while (!Serial); // Wait for Serial Monitor to open
+  unsigned int to = 60;
+  while (!Serial && --to) { // Wait briefly for Serial Monitor to open, then continue.
+    delay(1);
+  }  //continue whether we have serial connection or not. 
   Serial.println("Serial communication initialized.");
 
 
@@ -173,20 +178,42 @@ void parseMessage(String response) {
     Serial.println("Message: \"" + message + "\"");
 
     // Test for flag request
-    if (message == "GIVEMEFLAG") {
-      if (senderAddress > 0) {
+    if (message == "HELLOTHERE") {
+      if (senderAddress != 0) {
+        // Add senderAddress to clientList if not already present
+        bool clientExists = false;
+        for (int i = 0; i < clientCount; i++) {
+          if (clientList[i] == senderAddress) {
+            clientExists = true;
+            break;
+          }
+        }
+
+        if (!clientExists && clientCount < MAX_ADDRESSES) {
+          clientList[clientCount] = senderAddress;
+          clientCount++;
+          Serial.println("New client added: " + String(senderAddress));
+          // Update the OLED display
+          updateDisplay();
+        } else if (clientExists) {
+          Serial.println("Client already exists: " + String(senderAddress));
+        } else {
+          Serial.println("Client list is full. Cannot add new client.");
+        }
+
+        // Enqueue the address for sending the flag
         enqueueAddress(senderAddress);
         Serial.println("Enqueued address: " + String(senderAddress));
       } else {
-        Serial.println("Invalid sender address. Cannot enqueue.");
+        Serial.println("Invalid sender address (0). Cannot enqueue.");
       }
     }
 
     String fullMessage = "From: " + String(senderAddress) + '\n' + message;
-    displayMessage(fullMessage);
+    // Optionally display the received message
+    // displayMessage(fullMessage);
   }
 }
-
 // Function to display a message on the OLED
 void displayMessage(String msg) {
   display.clearDisplay();
@@ -195,6 +222,16 @@ void displayMessage(String msg) {
   display.display();
 }
 
+void updateDisplay() {
+  display.clearDisplay();
+  display.setCursor(0, 0);
+
+  display.println("Clients:");
+  for (int i = 0; i < clientCount; i++) {
+    display.print(String(clientList[i]) + ",");
+  }
+  display.display();
+}
 // Function to configure the LoRa module
 void configureLoRaModule() {
   // Set module address (e.g., 1)
