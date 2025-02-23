@@ -8,8 +8,8 @@ Welcome to the CTF Hardware Challenge Repository! This open-source project is de
 ### Hardware Setup
 The challenge involves two main devices:
 
-Client Device: An Arduino Nano ESP32 (IoT - 3.3v) connected to a Reyax RYLR998 LoRa module and a small OLED display (128x32 pixels).
-Server Device: Similarly equipped with an Arduino Nano ESP32 and a Reyax RYLR998 LoRa module.
+Client Device: An Arduino Nano ESP32 (IoT - 3.3v) connected to a Reyax RYLR998 LoRa module and a small [OLED display](https://www.amazon.com/dp/B09T6SJBV5?th=1) (128x64 pixels).
+Server Device: Similarly equipped with an [Arduino Nano ESP32](https://www.amazon.com/dp/B0C947BHK5) and a [Reyax RYLR998](https://www.amazon.com/dp/B099RM1XMG) LoRa module.
 Both devices are assembled on breadboards using jumper wires. Correct wiring is essential for the devices to function properly. Refer to the code for specific pin configurations.
 
 ### Challenge Description
