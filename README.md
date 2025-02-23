@@ -1,3 +1,5 @@
+![logo](./images/lora-logo.jpg)
+
 ## LoRa Challenge 2025
 
 ### CTF Hardware Challenge
