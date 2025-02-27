@@ -178,7 +178,7 @@ void parseMessage(String response) {
     Serial.println("Message: \"" + message + "\"");
 
     // Test for flag request
-    if (message == "HELLOTHERE") {
+    if (message == "HELLOTHERE") {  //Change to GIVEMEFLAG
       if (senderAddress != 0) {
         // Add senderAddress to clientList if not already present
         bool clientExists = false;

@@ -135,8 +135,8 @@ void loop() {
   readLoRaResponse();
 }
 
-void sendFlagRequest() {
-  String message = "HELLOTHERE"; // Or maybe you could GIVEMEFLAG
+void sendFlagRequest() { // Upon button press, send a request to the server for a flag.
+  String message = "HELLOTHERE"; // Or maybe you could try...what the server needs? 
   int messageLength = message.length();
   String atCommand = "AT+SEND=" + String(LORA_ADDRESS_DEST) + "," + String(messageLength) + "," + message;
   sendCommand(atCommand);
