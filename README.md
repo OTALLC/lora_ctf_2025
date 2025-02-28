@@ -12,6 +12,9 @@ Client Device: An Arduino Nano ESP32 (IoT - 3.3v) connected to a Reyax RYLR998 L
 Server Device: Similarly equipped with an [Arduino Nano ESP32](https://www.amazon.com/dp/B0C947BHK5) and a [Reyax RYLR998](https://www.amazon.com/dp/B099RM1XMG) LoRa module.
 Both devices are assembled on breadboards using jumper wires. Correct wiring is essential for the devices to function properly. Refer to the code for specific pin configurations.
 
+![Picture showing proper hardware wiring](./images/wiring.jpg)
+
+
 ### Challenge Description
 The challenge consists of three tasks, each revealing a "flag" on the client display when completed successfully:
 
