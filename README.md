@@ -47,6 +47,6 @@ Adhere to local regulations regarding wireless communication frequencies and pow
 The challenge is designed to be solved through exploration, experimentation, and collaboration. Avoid seeking direct solutions or spoilers to maintain the spirit of the competition.
 
 YouTube video references: <BR>
-- Webinar for this project:  https://youtu.be/HX649_oek0A 
+- Webinar for this project:  https://youtu.be/7Mm66I5KXT0
 - Chirp Spread Spectrum: https://youtu.be/dxYY097QNs0?si=GEv47-8djiJaNwlT
 
