@@ -27,7 +27,7 @@ HardwareSerial loraSerial(1);
 
 // LoRa variables
 #define LORA_NETWORKID 73  //needs to be 73
-#define LORA_ADDRESS_SRC 4 //this radio's address 0~65535
+#define LORA_ADDRESS_SRC 999 //this radio's address 0~65535
 #define LORA_ADDRESS_DEST 0 // 0=broadcast, 4=server
 #define LORA_BAND 915000000
 
@@ -99,7 +99,7 @@ void loop() {
   // Check if it's time to send the beacon message
   if (currentTime - lastBeaconTime >= beaconInterval) {
     // Send beacon message
-    sendCommand("AT+SEND=0,13,SKY_HDWR_2222");
+    sendCommand("AT+SEND=0,13,NOT_FLAG_1234");
     readLoRaResponse();
     lastBeaconTime = currentTime;
   }
@@ -112,7 +112,7 @@ void loop() {
     int address = addressQueue[queueStart];
     queueStart = (queueStart + 1) % MAX_ADDRESSES;
 
-    String responseMessage = "SKY_HDWR_3333";
+    String responseMessage = "NOT_FLAG_1234";
     responseMessage.trim();
     int responseLength = responseMessage.length();
     Serial.println("Sending response to address: " + String(address));
